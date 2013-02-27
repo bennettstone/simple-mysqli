@@ -1,7 +1,7 @@
 simple-mysqli
 =============
 
-PHP class to tpo access MySQL database wrapper using MySQLi It can also:
+PHP class to access MySQL database wrapper using MySQLi It can also:
 
 - Connect to a given MySQL server
 - Execute arbitrary SQL queries
@@ -15,3 +15,5 @@ PHP class to tpo access MySQL database wrapper using MySQLi It can also:
 - Execute INSERT, UPDATE and DELETE queries from values that define tables, field names, field values and conditions
 - Truncate a table
 - Send email messages with MySQL access errors
+
+Full usage examples are provided in example.php, using example data provided in example-data.sql
