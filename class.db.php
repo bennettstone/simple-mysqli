@@ -3,8 +3,8 @@
 ** File:		class.db.php
 ** Class:       Simply MySQLi
 ** Description:	PHP MySQLi wrapper class to handle common database queries and operations 
-** Version:		1.0
-** Updated:     27-Feb-2013
+** Version:		2.0
+** Updated:     01-Jun-2013
 ** Author:		Bennett Stone
 ** Homepage:	www.phpdevtips.com 
 **------------------------------------------------------------------------------
@@ -30,8 +30,13 @@ class DB
     /**
      * Allow the class to send admins a message alerting them to errors
      * on production sites
+     *
+     * @access public
+     * @param string $error
+     * @param string $query
+     * @return mixed
      */
-    public function log_db_errors( $error, $query, $severity )
+    public function log_db_errors( $error, $query )
     {
         $headers  = 'MIME-Version: 1.0' . "\r\n";
         $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
@@ -44,7 +49,6 @@ class DB
         $message .= 'Query: '. htmlentities( $query ).'<br />';
         $message .= 'Error: ' . $error;
         $message .= '</p>';
-        $message .= '<p>Severity: '. $severity .'</p>';
 
         mail( SEND_ERRORS_TO, 'Database Error', $message, $headers);
 
@@ -61,10 +65,11 @@ class DB
 		mb_internal_encoding( 'UTF-8' );
 		mb_regex_encoding( 'UTF-8' );
 		$this->link = new mysqli( DB_HOST, DB_USER, DB_PASS, DB_NAME );
+		$this->link->set_charset( "utf8" );
 		
-        if( mysqli_connect_errno() )
+        if( $this->link->connect_errno )
         {
-            $this->log_db_errors( "Connect failed: %s\n", mysqli_connect_error(), 'Fatal' );
+            $this->log_db_errors( "Connect failed: %s\n", $this->link->connect_error );
             exit();
         }
 	}
@@ -79,16 +84,15 @@ class DB
      * Sanitize user data
      *
      * @access public
-     * @param string, array
-     * @return string, array
-     *
+     * @param mixed $data
+     * @return mixed $data
      */
     public function filter( $data )
     {
         if( !is_array( $data ) )
         {
             $data = trim( htmlentities( $data ) );
-        	$data = mysqli_real_escape_string( $this->link, $data );
+        	$data = $this->link->real_escape_string( $data );
         }
         else
         {
@@ -149,16 +153,17 @@ class DB
     public function query( $query )
     {
         $query = $this->link->query( $query );
-        if( mysqli_error( $this->link ) )
+        if( $this->link->error )
         {
-            $this->log_db_errors( mysqli_error( $this->link ), $query, 'Fatal' );
+            $this->log_db_errors( $this->link->error, $query );
+            $query->free();
             return false; 
         }
         else
         {
+            $query->free();
             return true;
         }
-        mysqli_free_result( $query );
     }
     
     
@@ -181,7 +186,6 @@ class DB
         {
             return false;
         }
-        mysqli_free_result( $check );
     }
     
     
@@ -196,16 +200,15 @@ class DB
     public function num_rows( $query )
     {
         $query = $this->link->query( $query );
-        if( mysqli_error( $this->link ) )
+        if( $this->link->error )
         {
-            $this->log_db_errors( mysqli_error( $this->link ), $query, 'Fatal' );
-            return mysqli_error( $this->link );
+            $this->log_db_errors( $this->link->error, $query );
+            return $this->link->error;
         }
         else
         {
-            return mysqli_num_rows( $query );
+            return $query->num_rows;
         }
-        mysqli_free_result( $query );
     }
     
     
@@ -278,15 +281,14 @@ class DB
     public function get_row( $query )
     {
         $query = $this->link->query( $query );
-        if( mysqli_error( $this->link ) )
+        if( $this->link->error )
         {
-            $this->log_db_errors( mysqli_error( $this->link ), $query, 'Fatal' );
+            $this->log_db_errors( $this->link->error, $query );
             return false;
         }
         else
         {
-            $r = mysqli_fetch_row( $query );
-            mysqli_free_result( $query );
+            $r = $query->fetch_row();
             return $r;   
         }
     }
@@ -302,20 +304,22 @@ class DB
      */
     public function get_results( $query )
     {
-        $row = array();
+        //Overwrite the $row var to null
+        $row = null;
+        
         $query = $this->link->query( $query );
-        if( mysqli_error( $this->link ) )
+        if( $this->link->error )
         {
-            $this->log_db_errors( mysqli_error( $this->link ), $query, 'Fatal' );
+            $this->log_db_errors( $this->link->error, $query );
             return false;
         }
         else
         {
-            while( $r = mysqli_fetch_array( $query, MYSQLI_ASSOC ) )
+            $row = array();
+            while( $r = $query->fetch_assoc() )
             {
                 $row[] = $r;
             }
-            mysqli_free_result( $query );
             return $row;   
         }
     }
@@ -332,6 +336,12 @@ class DB
      */
     public function insert( $table, $variables = array() )
     {
+        //Make sure the array isn't empty
+        if( empty( $variables ) )
+        {
+            return false;
+            exit;
+        }
         
         $sql = "INSERT INTO ". $table;
         $fields = array();
@@ -346,12 +356,12 @@ class DB
         
         $sql .= $fields .' VALUES '. $values;
 
-        $query = mysqli_query( $this->link, $sql );
+        $query = $this->link->query( $sql );
         
-        if( mysqli_error( $this->link ) )
+        if( $this->link->error )
         {
             //return false; 
-            $this->log_db_errors( mysqli_error( $this->link ), $sql, 'Fatal' );
+            $this->log_db_errors( $this->link->error, $sql );
             return false;
         }
         else
@@ -374,6 +384,13 @@ class DB
     */
     public function insert_safe( $table, $variables = array() )
     {
+        //Make sure the array isn't empty
+        if( empty( $variables ) )
+        {
+            return false;
+            exit;
+        }
+        
         $sql = "INSERT INTO ". $table;
         $fields = array();
         $values = array();
@@ -387,11 +404,11 @@ class DB
         $values = '('. implode(', ', $values) .')';
         
         $sql .= $fields .' VALUES '. $values;
-        $query = mysqli_query( $this->link, $sql );
+        $query = $this->link->query( $sql );
         
-        if( mysqli_error( $this->link ) )
+        if( $this->link->error )
         {
-            $this->log_db_errors( mysqli_error( $this->link ), $sql, 'Fatal' );
+            $this->log_db_errors( $this->link->error, $sql );
             return false;
         }
         else
@@ -414,7 +431,14 @@ class DB
      */
     public function update( $table, $variables = array(), $where = array(), $limit = '' )
     {
-
+        //Make sure the required data is passed before continuing
+        //This does not include the $where variable as (though infrequently)
+        //queries are designated to update entire tables
+        if( empty( $variables ) )
+        {
+            return false;
+            exit;
+        }
         $sql = "UPDATE ". $table ." SET ";
         foreach( $variables as $field => $value )
         {
@@ -423,24 +447,28 @@ class DB
         }
         $sql .= implode(', ', $updates);
         
-        foreach( $where as $field => $value )
+        //Add the $where clauses as needed
+        if( !empty( $where ) )
         {
-            $value = $value;
-                
-            $clause[] = "$field = '$value'";
+            foreach( $where as $field => $value )
+            {
+                $value = $value;
+
+                $clause[] = "$field = '$value'";
+            }
+            $sql .= ' WHERE '. implode(' AND ', $clause);   
         }
-        $sql .= ' WHERE '. implode(' AND ', $clause);
         
         if( !empty( $limit ) )
         {
             $sql .= ' LIMIT '. $limit;
         }
 
-        $query = mysqli_query( $this->link, $sql );
+        $query = $this->link->query( $sql );
 
-        if( mysqli_error( $this->link ) )
+        if( $this->link->error )
         {
-            $this->log_db_errors( mysqli_error( $this->link ), $sql, 'Fatal' );
+            $this->log_db_errors( $this->link->error, $sql );
             return false;
         }
         else
@@ -462,6 +490,13 @@ class DB
      */
     public function delete( $table, $where = array(), $limit = '' )
     {
+        //Delete clauses require a where param, otherwise use "truncate"
+        if( empty( $where ) )
+        {
+            return false;
+            exit;
+        }
+        
         $sql = "DELETE FROM ". $table;
         foreach( $where as $field => $value )
         {
@@ -475,12 +510,12 @@ class DB
             $sql .= " LIMIT ". $limit;
         }
             
-        $query = mysqli_query( $this->link, $sql );
+        $query = $this->link->query( $sql );
 
-        if( mysqli_error( $this->link ) )
+        if( $this->link->error )
         {
             //return false; //
-            $this->log_db_errors( mysqli_error( $this->link ), $sql, 'Fatal' );
+            $this->log_db_errors( $this->link->error, $sql );
             return false;
         }
         else
@@ -500,7 +535,7 @@ class DB
      */
     public function lastid()
     {
-        return mysqli_insert_id( $this->link );
+        return $this->link->insert_id;
     }
     
     
@@ -514,8 +549,8 @@ class DB
     public function num_fields( $query )
     {
         $query = $this->link->query( $query );
-        return mysqli_num_fields( $query );
-        mysqli_free_result( $query );
+        $fields = $query->field_count;
+        return $fields;
     }
     
     /**
@@ -528,8 +563,8 @@ class DB
     public function list_fields( $query )
     {
         $query = $this->link->query( $query );
-        return mysqli_fetch_fields( $query );
-        mysqli_free_result( $query );
+        $listed_fields = $query->fetch_fields();
+        return $listed_fields;
     }
     
     
@@ -544,14 +579,14 @@ class DB
      */
     public function truncate( $tables = array() )
     {
-        if( !empty($tables) )
+        if( !empty( $tables ) )
         {
             $truncated = 0;
             foreach( $tables as $table )
             {
                 $truncate = "TRUNCATE TABLE `".trim($table)."`";
-                mysqli_query( $this->link, $truncate );
-                if( !mysqli_error( $this->link ) )
+                $this->link->query( $truncate );
+                if( !$this->link->error )
                 {
                     $truncated++;
                 }
@@ -600,7 +635,7 @@ class DB
      */
     public function disconnect()
     {
-		mysqli_close( $this->link );
+		$this->link->close();
 	}
 
 }

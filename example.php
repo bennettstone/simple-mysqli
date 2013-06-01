@@ -22,6 +22,7 @@ $database = new DB();
 /**
  * Filter all post data
  */
+$_POST['name'] = 'This database class is "super awesome" & whatnots';
 if( isset( $_POST ) )
 {
     foreach( $_POST as $key => $value )
@@ -29,6 +30,22 @@ if( isset( $_POST ) )
         $_POST[$key] = $database->filter( $value );
     }
 }
+echo '<pre>';
+print_r($_POST);
+echo '</pre>';
+
+/**
+ * Auto filter an entire array
+ */
+$array = array(
+    'name' => array( 'first' => '"Super awesome"' ), 
+    'email' => '%&&<stuff'
+);
+$array = $database->filter( $array );
+echo '<pre>';
+print_r($array);
+echo '</pre>';
+
 
 /**
  * Retrieve results of a standard query
@@ -44,7 +61,7 @@ foreach( $results as $row )
 /**
  * Retrieving a single row of data
  */
-$query = "SELECT group_id, group_name, group_parent FROM example_phpmvc WHERE group_name LIKE '%production%'";
+$query = "SELECT group_id, group_name, group_parent FROM example_phpmvc WHERE group_name LIKE '%Awesome%'";
 if( $database->num_rows( $query ) > 0 )
 {
     list( $id, $name, $parent ) = $database->get_row( $query );
@@ -70,24 +87,25 @@ if( $add_query )
     echo '<p>Successfully inserted &quot;'. $names['group_name']. '&quot; into the database.</p>';
 }
 
+$last = $database->lastid();
+
 
 /**
  * Updating data
  */
 //Fields and values to update
 $update = array(
-    'group_name' => 'Production Tools (updated)', 
+    'group_name' => md5( mt_rand(0, 500) ), 
     'group_parent' => 91
 );
 //Add the WHERE clauses
 $where_clause = array(
-    'group_name' => 'Production Tools', 
-    'group_id' => 15
+    'group_id' => $last
 );
 $updated = $database->update( 'example_phpmvc', $update, $where_clause, 1 );
 if( $updated )
 {
-    echo '<p>Successfully updated '.$where_clause['group_name']. ' to '. $update['group_name'].'</p>';
+    echo '<p>Successfully updated '.$where_clause['group_id']. ' to '. $update['group_name'].'</p>';
 }
 
 /**
