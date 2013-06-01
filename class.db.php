@@ -43,10 +43,8 @@ class DB
         $headers .= 'To: Admin <'.SEND_ERRORS_TO.'>' . "\r\n";
         $headers .= 'From: Yoursite <system@your-site.com>' . "\r\n";
     
-        $message = '<p>An error has occurred:</p>';
-
-        $message .= '<p>Error at '. date('Y-m-d H:i:s').': ';
-        $message .= 'Query: '. htmlentities( $query ).'<br />';
+        $message = '<p>Error at '. date('Y-m-d H:i:s').':</p>';
+        $message .= '<p>Query: '. htmlentities( $query ).'<br />';
         $message .= 'Error: ' . $error;
         $message .= '</p>';
 
@@ -69,7 +67,7 @@ class DB
 		
         if( $this->link->connect_errno )
         {
-            $this->log_db_errors( "Connect failed: %s\n", $this->link->connect_error );
+            $this->log_db_errors( "Connect failed", $this->link->connect_error );
             exit();
         }
 	}
@@ -152,16 +150,16 @@ class DB
      */
     public function query( $query )
     {
-        $query = $this->link->query( $query );
+        $full_query = $this->link->query( $query );
         if( $this->link->error )
         {
             $this->log_db_errors( $this->link->error, $query );
-            $query->free();
+            $full_query->free();
             return false; 
         }
         else
         {
-            $query->free();
+            $full_query->free();
             return true;
         }
     }
@@ -199,7 +197,7 @@ class DB
      */
     public function num_rows( $query )
     {
-        $query = $this->link->query( $query );
+        $num_rows = $this->link->query( $query );
         if( $this->link->error )
         {
             $this->log_db_errors( $this->link->error, $query );
@@ -207,7 +205,7 @@ class DB
         }
         else
         {
-            return $query->num_rows;
+            return $num_rows->num_rows;
         }
     }
     
@@ -280,7 +278,7 @@ class DB
      */
     public function get_row( $query )
     {
-        $query = $this->link->query( $query );
+        $row = $this->link->query( $query );
         if( $this->link->error )
         {
             $this->log_db_errors( $this->link->error, $query );
@@ -288,7 +286,7 @@ class DB
         }
         else
         {
-            $r = $query->fetch_row();
+            $r = $row->fetch_row();
             return $r;   
         }
     }
@@ -307,7 +305,7 @@ class DB
         //Overwrite the $row var to null
         $row = null;
         
-        $query = $this->link->query( $query );
+        $results = $this->link->query( $query );
         if( $this->link->error )
         {
             $this->log_db_errors( $this->link->error, $query );
@@ -316,7 +314,7 @@ class DB
         else
         {
             $row = array();
-            while( $r = $query->fetch_assoc() )
+            while( $r = $results->fetch_assoc() )
             {
                 $row[] = $r;
             }
