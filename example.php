@@ -168,3 +168,10 @@ echo '</pre>';
  * Output the number of fields in a table
  */
 echo $database->num_fields( "SELECT * FROM example_phpmvc" );
+
+
+/**
+ * Display the number of queries performed by the class
+ * Applies across multiple instances of the DB class
+ */
+echo '<hr />' . $database->total_queries();

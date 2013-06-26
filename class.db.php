@@ -1,12 +1,12 @@
 <?php
 /*------------------------------------------------------------------------------
-** File:		class.db.php
+** File:        class.db.php
 ** Class:       Simply MySQLi
-** Description:	PHP MySQLi wrapper class to handle common database queries and operations 
-** Version:		2.0
-** Updated:     01-Jun-2013
-** Author:		Bennett Stone
-** Homepage:	www.phpdevtips.com 
+** Description: PHP MySQLi wrapper class to handle common database queries and operations 
+** Version:     2.0.1
+** Updated:     26-Jun-2013
+** Author:      Bennett Stone
+** Homepage:    www.phpdevtips.com 
 **------------------------------------------------------------------------------
 ** COPYRIGHT (c) 2012 - 2013 BENNETT STONE
 **
@@ -26,6 +26,7 @@ class DB
 {
     private $link;
     public $filter;
+    public static $counter = 0;
     
     /**
      * Allow the class to send admins a message alerting them to errors
@@ -57,28 +58,28 @@ class DB
     }
     
     
-	public function __construct()
-	{
-	    global $connection;
-		mb_internal_encoding( 'UTF-8' );
-		mb_regex_encoding( 'UTF-8' );
-		$this->link = new mysqli( DB_HOST, DB_USER, DB_PASS, DB_NAME );
-		$this->link->set_charset( "utf8" );
-		
+    public function __construct()
+    {
+        global $connection;
+        mb_internal_encoding( 'UTF-8' );
+        mb_regex_encoding( 'UTF-8' );
+        $this->link = new mysqli( DB_HOST, DB_USER, DB_PASS, DB_NAME );
+        $this->link->set_charset( "utf8" );
+
         if( $this->link->connect_errno )
         {
             $this->log_db_errors( "Connect failed", $this->link->connect_error );
             exit();
         }
-	}
-	
-	public function __destruct()
-	{
-		$this->disconnect();
-	}
-	
-	
-	/**
+    }
+
+    public function __destruct()
+    {
+        $this->disconnect();
+    }
+
+
+    /**
      * Sanitize user data
      *
      * @access public
@@ -90,14 +91,14 @@ class DB
         if( !is_array( $data ) )
         {
             $data = trim( htmlentities( $data ) );
-        	$data = $this->link->real_escape_string( $data );
+            $data = $this->link->real_escape_string( $data );
         }
         else
         {
             //Self call function to sanitize array data
             $data = array_map( array( 'DB', 'filter' ), $data );
         }
-    	return $data;
+        return $data;
     }
     
     
@@ -175,6 +176,7 @@ class DB
      */
     public function table_exists( $name )
     {
+        self::$counter++;
         $check = $this->link->query("SELECT * FROM '$name' LIMIT 1");
         if( $check ) 
         {
@@ -197,6 +199,7 @@ class DB
      */
     public function num_rows( $query )
     {
+        self::$counter++;
         $num_rows = $this->link->query( $query );
         if( $this->link->error )
         {
@@ -229,6 +232,7 @@ class DB
      */
     public function exists( $table = '', $check_val = '', $params = array() )
     {
+        self::$counter++;
         if( empty($table) || empty($check_val) || empty($params) )
         {
             return false;
@@ -255,7 +259,7 @@ class DB
         $check = implode(' AND ', $check);
 
         $rs_check = "SELECT $check_val FROM ".$table." WHERE $check";
-    	$number = $this->num_rows( $rs_check );
+        $number = $this->num_rows( $rs_check );
         if( $number === 0 )
         {
             return false;
@@ -278,6 +282,7 @@ class DB
      */
     public function get_row( $query )
     {
+        self::$counter++;
         $row = $this->link->query( $query );
         if( $this->link->error )
         {
@@ -302,6 +307,7 @@ class DB
      */
     public function get_results( $query )
     {
+        self::$counter++;
         //Overwrite the $row var to null
         $row = null;
         
@@ -334,6 +340,7 @@ class DB
      */
     public function insert( $table, $variables = array() )
     {
+        self::$counter++;
         //Make sure the array isn't empty
         if( empty( $variables ) )
         {
@@ -368,6 +375,7 @@ class DB
         }
     }
     
+    
     /**
     * Insert data KNOWN TO BE SECURE into database table
     * Ensure that this function is only used with safe data
@@ -382,6 +390,7 @@ class DB
     */
     public function insert_safe( $table, $variables = array() )
     {
+        self::$counter++;
         //Make sure the array isn't empty
         if( empty( $variables ) )
         {
@@ -429,6 +438,7 @@ class DB
      */
     public function update( $table, $variables = array(), $where = array(), $limit = '' )
     {
+        self::$counter++;
         //Make sure the required data is passed before continuing
         //This does not include the $where variable as (though infrequently)
         //queries are designated to update entire tables
@@ -488,6 +498,7 @@ class DB
      */
     public function delete( $table, $where = array(), $limit = '' )
     {
+        self::$counter++;
         //Delete clauses require a where param, otherwise use "truncate"
         if( empty( $where ) )
         {
@@ -533,6 +544,7 @@ class DB
      */
     public function lastid()
     {
+        self::$counter++;
         return $this->link->insert_id;
     }
     
@@ -546,10 +558,12 @@ class DB
      */
     public function num_fields( $query )
     {
+        self::$counter++;
         $query = $this->link->query( $query );
         $fields = $query->field_count;
         return $fields;
     }
+    
     
     /**
      * Get field names associated with a table
@@ -560,11 +574,11 @@ class DB
      */
     public function list_fields( $query )
     {
+        self::$counter++;
         $query = $this->link->query( $query );
         $listed_fields = $query->fetch_fields();
         return $listed_fields;
     }
-    
     
     
     /**
@@ -587,6 +601,7 @@ class DB
                 if( !$this->link->error )
                 {
                     $truncated++;
+                    self::$counter++;
                 }
             }
             return $truncated;
@@ -628,12 +643,20 @@ class DB
     
     
     /**
+     * Output the total number of queries
+     */
+    public function total_queries()
+    {
+        return self::$counter;
+    }
+    
+    /**
      * Disconnect from db server
      * Called automatically from __destruct function
      */
     public function disconnect()
     {
-		$this->link->close();
-	}
+        $this->link->close();
+    }
 
-}
+} //end class DB
