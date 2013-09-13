@@ -17,7 +17,12 @@ define( 'SEND_ERRORS_TO', 'you@yourwebsite.com' ); //set email notification emai
 define( 'DISPLAY_DEBUG', true ); //display db errors?
 
 require_once( 'class.db.php' );
+
+//Initiate the class
 $database = new DB();
+
+//OR...
+$database = DB::getInstance();
 
 /**
  * Filter all post data
@@ -39,7 +44,8 @@ echo '</pre>';
  */
 $array = array(
     'name' => array( 'first' => '"Super awesome"' ), 
-    'email' => '%&&<stuff'
+    'email' => '%&&<stuff', 
+    'something_else' => "'single quotes are awesome'"
 );
 $array = $database->filter( $array );
 echo '<pre>';
