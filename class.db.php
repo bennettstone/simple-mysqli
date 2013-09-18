@@ -40,17 +40,20 @@ class DB
      */
     public function log_db_errors( $error, $query )
     {
-        $headers  = 'MIME-Version: 1.0' . "\r\n";
-        $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
-        $headers .= 'To: Admin <'.SEND_ERRORS_TO.'>' . "\r\n";
-        $headers .= 'From: Yoursite <system@your-site.com>' . "\r\n";
-    
         $message = '<p>Error at '. date('Y-m-d H:i:s').':</p>';
         $message .= '<p>Query: '. htmlentities( $query ).'<br />';
         $message .= 'Error: ' . $error;
         $message .= '</p>';
 
-        mail( SEND_ERRORS_TO, 'Database Error', $message, $headers);
+        if( defined( 'SEND_ERRORS_TO' ) )
+        {
+            $headers  = 'MIME-Version: 1.0' . "\r\n";
+            $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
+            $headers .= 'To: Admin <'.SEND_ERRORS_TO.'>' . "\r\n";
+            $headers .= 'From: Yoursite <system@your-site.com>' . "\r\n";
+            
+            mail( SEND_ERRORS_TO, 'Database Error', $message, $headers);   
+        }
 
         if( DISPLAY_DEBUG )
         {
