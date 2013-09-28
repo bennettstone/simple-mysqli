@@ -3,8 +3,8 @@
 ** File:        class.db.php
 ** Class:       Simply MySQLi
 ** Description: PHP MySQLi wrapper class to handle common database queries and operations 
-** Version:     2.0.2
-** Updated:     12-Sep-2013
+** Version:     2.0.3
+** Updated:     27-Sep-2013
 ** Author:      Bennett Stone
 ** Homepage:    www.phpdevtips.com 
 **------------------------------------------------------------------------------
@@ -177,19 +177,26 @@ class DB
      * @return bool
      *
      */
-    public function table_exists( $name )
-    {
-        self::$counter++;
-        $check = $this->link->query("SELECT * FROM '$name' LIMIT 1");
-        if( $check ) 
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
+     public function table_exists( $name )
+     {
+         self::$counter++;
+         $check = $this->link->query( "SELECT 1 FROM $name" );
+         if($check !== false)
+         {
+             if( $check->num_rows > 0 )
+             {
+                 return true;
+             }
+             else
+             {
+                 return false;
+             }
+         }
+         else
+         {
+             return false;
+         }
+     }
     
     
     /**
