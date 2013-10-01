@@ -104,15 +104,10 @@ class DB
         return $data;
     }
 
-
     /**
      * Determine if common non-encapsulated fields are being used
-     *
-     * @access public
-     * @param string
-     * @param array
+     * @param mixed $value
      * @return bool
-     *
      */
     public function db_common( $value = '' )
     {
@@ -146,7 +141,7 @@ class DB
      * All data run through this function is automatically sanitized using the filter function
      *
      * @access public
-     * @param string
+     * @param string $query
      * @return string
      * @return array
      * @return bool
@@ -173,7 +168,7 @@ class DB
      * Determine if database table exists
      *
      * @access public
-     * @param string
+     * @param string $name
      * @return bool
      *
      */
@@ -203,7 +198,7 @@ class DB
      * Count number of rows found matching a specific query
      *
      * @access public
-     * @param string
+     * @param string $query
      * @return int
      *
      */
@@ -234,9 +229,9 @@ class DB
      * $exists = exists( 'your_table', 'user_id', $check_user );
      *
      * @access public
-     * @param string database table name
-     * @param string field to check (i.e. 'user_id' or COUNT(user_id))
-     * @param array column name => column value to match
+     * @param string $table database table name
+     * @param string $check_val field to check (i.e. 'user_id' or COUNT(user_id))
+     * @param array $params column name => column value to match
      * @return bool
      *
      */
@@ -341,8 +336,8 @@ class DB
      * Insert data into database table
      *
      * @access public
-     * @param string table name
-     * @param array table column => column value
+     * @param string $table table name
+     * @param array $variables table column => column value
      * @return bool
      *
      */
@@ -391,8 +386,8 @@ class DB
      * All fields are assumed to be properly encapsulated before initiating this function
      *
      * @access public
-     * @param string table name
-     * @param array table column => column value
+     * @param string $table table name
+     * @param array $variables table column => column value
      * @return bool
      */
     public function insert_safe( $table, $variables = array() )
@@ -435,10 +430,10 @@ class DB
      * Update data in database table
      *
      * @access public
-     * @param string table name
-     * @param array values to update table column => column value
-     * @param array where parameters table column => column value
-     * @param int limit
+     * @param string $table table name
+     * @param array variables  values to update table column => column value
+     * @param array $where parameters table column => column value
+     * @param string $limit
      * @return bool
      *
      */
@@ -495,9 +490,9 @@ class DB
      * Delete data from table
      *
      * @access public
-     * @param string table name
-     * @param array where parameters table column => column value
-     * @param int max number of rows to remove.
+     * @param string $table table name
+     * @param array $where parameters table column => column value
+     * @param string $limit max number of rows to remove.
      * @return bool
      *
      */
@@ -557,7 +552,7 @@ class DB
      * Get number of fields
      *
      * @access public
-     * @param query
+     * @param $query
      * @return int
      */
     public function num_fields( $query )
@@ -573,7 +568,7 @@ class DB
      * Get field names associated with a table
      *
      * @access public
-     * @param query
+     * @param $query
      * @return array
      */
     public function list_fields( $query )
@@ -589,7 +584,7 @@ class DB
      * Truncate entire tables
      *
      * @access public
-     * @param array database table names
+     * @param array $tables database table names
      * @return int number of tables truncated
      *
      */
@@ -617,8 +612,8 @@ class DB
      * Output results of queries
      *
      * @access public
-     * @param string variable
-     * @param bool echo [true,false] defaults to true
+     * @param string $variable
+     * @param bool $echo [true,false] defaults to true
      * @return string
      *
      */
