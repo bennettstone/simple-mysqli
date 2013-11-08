@@ -3,8 +3,8 @@
 ** File:        class.db.php
 ** Class:       Simply MySQLi
 ** Description: PHP MySQLi wrapper class to handle common database queries and operations 
-** Version:     2.0.3
-** Updated:     27-Sep-2013
+** Version:     2.0.4
+** Updated:     07-Nov-2013
 ** Author:      Bennett Stone
 ** Homepage:    www.phpdevtips.com 
 **------------------------------------------------------------------------------
@@ -99,7 +99,7 @@ class DB
         else
         {
             //Self call function to sanitize array data
-            $data = array_map( array( 'DB', 'filter' ), $data );
+            $data = array_map( array( $this, 'filter' ), $data );
         }
         return $data;
     }
