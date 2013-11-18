@@ -21,7 +21,27 @@
 ** ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
 ** FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. 
 **------------------------------------------------------------------------------ */
+/*******************************
+ Example initialization:
+ 
+ define( 'DB_HOST', 'localhost' ); // set database host
+ define( 'DB_USER', 'root' ); // set database user
+ define( 'DB_PASS', 'root' ); // set database password
+ define( 'DB_NAME', 'yourdatabasename' ); // set database name
+ define( 'SEND_ERRORS_TO', 'you@yourwebsite.com' ); //set email notification email address
+ define( 'DISPLAY_DEBUG', true ); //display db errors?
+ require_once( 'class.db.php' );
 
+ //Initiate the class
+ $database = new DB();
+
+ //OR...
+ $database = DB::getInstance();
+ 
+ NOTE:
+ All examples provided below assume that this class has been initiated
+ Examples below assume the class has been iniated using $database = DB::getInstance();
+********************************/
 class DB
 {
     private $link;
@@ -85,6 +105,13 @@ class DB
     /**
      * Sanitize user data
      *
+     * Example usage:
+     * $user_name = $database->filter( $_POST['user_name'] );
+     * 
+     * Or to filter an entire array:
+     * $data = array( 'name' => $_POST['name'], 'email' => 'email@address.com' );
+     * $data = $database->filter( $data );
+     *
      * @access public
      * @param mixed $data
      * @return mixed $data
@@ -107,6 +134,13 @@ class DB
     
     /**
      * Determine if common non-encapsulated fields are being used
+     *
+     * Example usage:
+     * if( $database->db_common( $query ) )
+     * {
+     *      //Do something
+     * }
+     * Used by function exists
      *
      * @access public
      * @param string
@@ -143,7 +177,6 @@ class DB
     /**
      * Perform queries
      * All following functions run through this function
-     * All data run through this function is automatically sanitized using the filter function
      *
      * @access public
      * @param string
@@ -171,6 +204,11 @@ class DB
     
     /**
      * Determine if database table exists
+     * Example usage:
+     * if( !$database->table_exists( 'checkingfortable' ) )
+     * {
+     *      //Install your table or throw error
+     * }
      *
      * @access public
      * @param string
@@ -202,6 +240,9 @@ class DB
     /**
      * Count number of rows found matching a specific query
      *
+     * Example usage:
+     * $rows = $database->num_rows( "SELECT id FROM users WHERE user_id = 44" );
+     *
      * @access public
      * @param string
      * @return int
@@ -231,7 +272,7 @@ class DB
      *    'user_email' => 'someuser@gmail.com', 
      *    'user_id' => 48
      * );
-     * $exists = exists( 'your_table', 'user_id', $check_user );
+     * $exists = $database->exists( 'your_table', 'user_id', $check_user );
      *
      * @access public
      * @param string database table name
@@ -285,6 +326,9 @@ class DB
     /**
      * Return specific row based on db query
      *
+     * Example usage:
+     * list( $name, $email ) = $database->get_row( "SELECT name, email FROM users WHERE user_id = 44" );
+     *
      * @access public
      * @param string
      * @return array
@@ -309,6 +353,13 @@ class DB
     
     /**
      * Perform query to retrieve array of associated results
+     *
+     * Example usage:
+     * $users = $database->get_results( "SELECT name, email FROM users ORDER BY name ASC" );
+     * foreach( $users as $user )
+     * {
+     *      echo $user['name'] . ': '. $user['email'] .'<br />';
+     * }
      *
      * @access public
      * @param string
@@ -342,6 +393,14 @@ class DB
     /**
      * Insert data into database table
      *
+     * Example usage:
+     * $user_data = array(
+     *      'name' => 'Bennett', 
+     *      'email' => 'email@address.com', 
+     *      'active' => 1
+     * );
+     * $database->insert( 'users_table', $user_data );
+     *
      * @access public
      * @param string table name
      * @param array table column => column value
@@ -355,7 +414,6 @@ class DB
         if( empty( $variables ) )
         {
             return false;
-            exit;
         }
         
         $sql = "INSERT INTO ". $table;
@@ -438,6 +496,11 @@ class DB
     /**
      * Update data in database table
      *
+     * Example usage:
+     * $update = array( 'name' => 'Not bennett', 'email' => 'someotheremail@email.com' );
+     * $update_where = array( 'user_id' => 44, 'name' => 'Bennett' );
+     * $database->update( 'users_table', $update, $update_where, 1 );
+     *
      * @access public
      * @param string table name
      * @param array values to update table column => column value
@@ -499,6 +562,10 @@ class DB
     /**
      * Delete data from table
      *
+     * Example usage:
+     * $where = array( 'user_id' => 44, 'email' => 'someotheremail@email.com' );
+     * $database->delete( 'users_table', $where, 1 );
+     *
      * @access public
      * @param string table name
      * @param array where parameters table column => column value
@@ -547,6 +614,10 @@ class DB
     /**
      * Get last auto-incrementing ID associated with an insertion
      *
+     * Example usage:
+     * $database->insert( 'users_table', $user );
+     * $last = $database->lastid();
+     *
      * @access public
      * @param none
      * @return int
@@ -561,6 +632,9 @@ class DB
     
     /**
      * Get number of fields
+     *
+     * Example usage:
+     * echo $database->num_fields( "SELECT * FROM users_table" );
      *
      * @access public
      * @param query
@@ -578,6 +652,12 @@ class DB
     /**
      * Get field names associated with a table
      *
+     * Example usage:
+     * $fields = $database->list_fields( "SELECT * FROM users_table" );
+     * echo '<pre>';
+     * print_r( $fields );
+     * echo '</pre>';
+     *
      * @access public
      * @param query
      * @return array
@@ -593,6 +673,10 @@ class DB
     
     /**
      * Truncate entire tables
+     *
+     * Example usage:
+     * $remove_tables = array( 'users_table', 'user_data' );
+     * echo $database->truncate( $remove_tables );
      *
      * @access public
      * @param array database table names
@@ -654,6 +738,15 @@ class DB
     
     /**
      * Output the total number of queries
+     * Generally designed to be used at the bottom of a page after
+     * scripts have been run and initialized as needed
+     *
+     * Example usage:
+     * echo 'There were '. $database->total_queries() . ' performed';
+     *
+     * @access public
+     * @param none
+     * @return int
      */
     public function total_queries()
     {
@@ -663,6 +756,10 @@ class DB
     
     /**
      * Singleton function
+     *
+     * Example usage:
+     * $database = DB::getInstance();
+     *
      * @access private
      * @return self
      */
