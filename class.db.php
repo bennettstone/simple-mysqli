@@ -3,7 +3,7 @@
 ** File:        class.db.php
 ** Class:       Simply MySQLi
 ** Description: PHP MySQLi wrapper class to handle common database queries and operations 
-** Version:     2.0.5
+** Version:     2.0.6
 ** Updated:     22-Jan-2014
 ** Author:      Bennett Stone
 ** Homepage:    www.phpdevtips.com 
@@ -128,6 +128,25 @@ class DB
             //Self call function to sanitize array data
             $data = array_map( array( $this, 'filter' ), $data );
         }
+        return $data;
+    }
+    
+    
+    /**
+     * Normalize sanitized data for display (reverse $database->filter cleaning)
+     *
+     * Example usage:
+     * echo $database->clean( $data_from_database );
+     *
+     * @access public
+     * @param string $data
+     * @return string $data
+     */
+    public function clean( $data )
+    {
+        $data = html_entity_decode( $data, ENT_QUOTES );
+        $data = urldecode( $data );
+        $data = nl2br( stripslashes( $data ) );
         return $data;
     }
     
