@@ -97,6 +97,36 @@ $last = $database->lastid();
 
 
 /**
+ * Insert multiple records in single query
+ */
+//Field names
+$fields = array(
+    'group_parent', 
+    'group_name'
+);
+//Values to insert
+$records = array(
+    array(
+        9, 'Record 9'
+    ), 
+    array(
+        7, 'Record 7'
+    ), 
+    array(
+        7, 'Nick', 'nick@nick.com', 1, 'This will not be added'
+    ), 
+    array(
+        2, 'This is awesome'
+    )
+);
+$inserted = $database->insert_multi( 'example_phpmvc', $fields, $records );
+if( $inserted )
+{
+    echo '<p>'.$inserted .' records inserted</p>';
+}
+
+
+/**
  * Updating data
  */
 //Fields and values to update

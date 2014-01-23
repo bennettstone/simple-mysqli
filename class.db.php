@@ -3,12 +3,12 @@
 ** File:        class.db.php
 ** Class:       Simply MySQLi
 ** Description: PHP MySQLi wrapper class to handle common database queries and operations 
-** Version:     2.0.4
-** Updated:     07-Nov-2013
+** Version:     2.0.5
+** Updated:     22-Jan-2014
 ** Author:      Bennett Stone
 ** Homepage:    www.phpdevtips.com 
 **------------------------------------------------------------------------------
-** COPYRIGHT (c) 2012 - 2013 BENNETT STONE
+** COPYRIGHT (c) 2012 - 2014 BENNETT STONE
 **
 ** The source code included in this package is free software; you can
 ** redistribute it and/or modify it under the terms of the GNU General Public
@@ -489,6 +489,94 @@ class DB
         else
         {
             return true;
+        }
+    }
+    
+    
+    /**
+     * Insert multiple records in a single query into a database table
+     *
+     * Example usage:
+     * $fields = array(
+     *      'name', 
+     *      'email', 
+     *      'active'
+     *  );
+     *  $records = array(
+     *     array(
+     *          'Bennett', 'bennett@email.com', 1
+     *      ), 
+     *      array(
+     *          'Lori', 'lori@email.com', 0
+     *      ), 
+     *      array(
+     *          'Nick', 'nick@nick.com', 1, 'This will not be added'
+     *      ), 
+     *      array(
+     *          'Meghan', 'meghan@email.com', 1
+     *      )
+     * );
+     *  $database->insert_multi( 'users_table', $fields, $records );
+     *
+     * @access public
+     * @param string table name
+     * @param array table columns
+     * @param nested array records
+     * @return bool
+     * @return int number of records inserted
+     *
+     */
+    public function insert_multi( $table, $columns = array(), $records = array() )
+    {
+        self::$counter++;
+        //Make sure the arrays aren't empty
+        if( empty( $columns ) || empty( $records ) )
+        {
+            return false;
+        }
+
+        //Count the number of fields to ensure insertion statements do not exceed the same num
+        $number_columns = count( $columns );
+
+        //Start a counter for the rows
+        $added = 0;
+
+        //Start the query
+        $sql = "INSERT INTO ". $table;
+
+        $fields = array();
+        //Loop through the columns for insertion preparation
+        foreach( $columns as $field )
+        {
+            $fields[] = '`'.$field.'`';
+        }
+        $fields = ' (' . implode(', ', $fields) . ')';
+
+        //Loop through the records to insert
+        $values = array();
+        foreach( $records as $record )
+        {
+            //Only add a record if the values match the number of columns
+            if( count( $record ) == $number_columns )
+            {
+                $values[] = '(\''. implode( '\', \'', array_values( $record ) ) .'\')';
+                $added++;
+            }
+        }
+        $values = implode( ', ', $values );
+
+        $sql .= $fields .' VALUES '. $values;
+
+        $query = $this->link->query( $sql );
+
+        if( $this->link->error )
+        {
+            $this->log_db_errors( $this->link->error, $sql );
+            return false;
+        }
+        else
+        {
+            return $added;
         }
     }
     
