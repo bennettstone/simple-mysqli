@@ -3,8 +3,8 @@
 ** File:        class.db.php
 ** Class:       Simply MySQLi
 ** Description: PHP MySQLi wrapper class to handle common database queries and operations 
-** Version:     2.0.7
-** Updated:     23-Jan-2014
+** Version:     2.0.8
+** Updated:     28-Jan-2014
 ** Author:      Bennett Stone
 ** Homepage:    www.phpdevtips.com 
 **------------------------------------------------------------------------------
@@ -211,12 +211,10 @@ class DB
         if( $this->link->error )
         {
             $this->log_db_errors( $this->link->error, $query );
-            $full_query->free();
             return false; 
         }
         else
         {
-            $full_query->free();
             return true;
         }
     }
