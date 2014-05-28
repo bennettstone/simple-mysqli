@@ -3,8 +3,8 @@
 ** File:        class.db.php
 ** Class:       Simply MySQLi
 ** Description: PHP MySQLi wrapper class to handle common database queries and operations 
-** Version:     2.0.8
-** Updated:     28-Jan-2014
+** Version:     2.1.0
+** Updated:     28-May-2014
 ** Author:      Bennett Stone
 ** Homepage:    www.phpdevtips.com 
 **------------------------------------------------------------------------------
@@ -127,6 +127,27 @@ class DB
          {
              //Self call function to sanitize array data
              $data = array_map( array( $this, 'filter' ), $data );
+         }
+         return $data;
+     }
+     
+     
+     /**
+      * Extra function to filter when only mysqli_real_escape_string is needed
+      * @access public
+      * @param mixed $data
+      * @return mixed $data
+      */
+     public function escape( $data )
+     {
+         if( !is_array( $data ) )
+         {
+             $data = $this->link->real_escape_string( $data );
+         }
+         else
+         {
+             //Self call function to sanitize array data
+             $data = array_map( array( $this, 'escape' ), $data );
          }
          return $data;
      }
@@ -305,12 +326,10 @@ class DB
         if( empty($table) || empty($check_val) || empty($params) )
         {
             return false;
-            exit;
         }
         $check = array();
         foreach( $params as $field => $value )
         {
-            
             if( !empty( $field ) && !empty( $value ) )
             {
                 //Check for frequently used mysql commands and prevent encapsulation of them
@@ -349,10 +368,11 @@ class DB
      *
      * @access public
      * @param string
+     * @param bool $object (true returns results as objects)
      * @return array
      *
      */
-    public function get_row( $query )
+    public function get_row( $query, $object = false )
     {
         self::$counter++;
         $row = $this->link->query( $query );
@@ -363,7 +383,7 @@ class DB
         }
         else
         {
-            $r = $row->fetch_row();
+            $r = ( !$object ) ? $row->fetch_row() : $row->fetch_object();
             return $r;   
         }
     }
@@ -381,10 +401,11 @@ class DB
      *
      * @access public
      * @param string
+     * @param bool $object (true returns object)
      * @return array
      *
      */
-    public function get_results( $query )
+    public function get_results( $query, $object = false )
     {
         self::$counter++;
         //Overwrite the $row var to null
@@ -399,7 +420,7 @@ class DB
         else
         {
             $row = array();
-            while( $r = $results->fetch_assoc() )
+            while( $r = ( !$object ) ? $results->fetch_assoc() : $results->fetch_object() )
             {
                 $row[] = $r;
             }
@@ -733,6 +754,23 @@ class DB
     {
         self::$counter++;
         return $this->link->insert_id;
+    }
+    
+    
+    /**
+     * Return the number of rows affected by a given query
+     * 
+     * Example usage:
+     * $database->insert( 'users_table', $user );
+     * $database->affected();
+     *
+     * @access public
+     * @param none
+     * @return int
+     */
+    public function affected()
+    {
+        return $this->link->affected_rows;
     }
     
     
