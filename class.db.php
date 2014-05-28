@@ -3,7 +3,7 @@
 ** File:        class.db.php
 ** Class:       Simply MySQLi
 ** Description: PHP MySQLi wrapper class to handle common database queries and operations 
-** Version:     2.1.0
+** Version:     2.1.1
 ** Updated:     28-May-2014
 ** Author:      Bennett Stone
 ** Homepage:    www.phpdevtips.com 
@@ -91,7 +91,7 @@ class DB
         if( $this->link->connect_errno )
         {
             $this->log_db_errors( "Connect failed", $this->link->connect_error );
-            exit();
+            exit;
         }
         $this->link->set_charset( "utf8" );
     }
@@ -356,7 +356,6 @@ class DB
         {
             return true;
         }
-        exit;
     }
     
     
@@ -502,7 +501,6 @@ class DB
         if( empty( $variables ) )
         {
             return false;
-            exit;
         }
         
         $sql = "INSERT INTO ". $table;
@@ -645,7 +643,6 @@ class DB
         if( empty( $variables ) )
         {
             return false;
-            exit;
         }
         $sql = "UPDATE ". $table ." SET ";
         foreach( $variables as $field => $value )
@@ -707,7 +704,6 @@ class DB
         if( empty( $where ) )
         {
             return false;
-            exit;
         }
         
         $sql = "DELETE FROM ". $table;
