@@ -508,9 +508,9 @@ class DB
         $values = array();
         foreach( $variables as $field => $value )
         {
-            $fields[] = $this->filter( $field );
+            $fields[] = $field ;
             //Check for frequently used mysql commands and prevent encapsulation of them
-            $values[] = $value; 
+            $values[] = "'".$this->filter( $value )."'";
         }
         $fields = ' (' . implode(', ', $fields) . ')';
         $values = '('. implode(', ', $values) .')';
