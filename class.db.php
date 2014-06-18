@@ -3,8 +3,8 @@
 ** File:        class.db.php
 ** Class:       Simply MySQLi
 ** Description: PHP MySQLi wrapper class to handle common database queries and operations 
-** Version:     2.1.1
-** Updated:     28-May-2014
+** Version:     2.1.2
+** Updated:     18-Jun-2014
 ** Author:      Bennett Stone
 ** Homepage:    www.phpdevtips.com 
 **------------------------------------------------------------------------------
@@ -75,7 +75,7 @@ class DB
             mail( SEND_ERRORS_TO, 'Database Error', $message, $headers);   
         }
 
-        if( DISPLAY_DEBUG )
+        if( !defined( 'DISPLAY_DEBUG' ) || ( defined( 'DISPLAY_DEBUG' ) && DISPLAY_DEBUG ) )
         {
             echo $message;   
         }
