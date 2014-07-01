@@ -3,8 +3,8 @@
 ** File:        class.db.php
 ** Class:       Simply MySQLi
 ** Description: PHP MySQLi wrapper class to handle common database queries and operations 
-** Version:     2.1.2
-** Updated:     18-Jun-2014
+** Version:     2.1.3
+** Updated:     30-Jun-2014
 ** Author:      Bennett Stone
 ** Homepage:    www.phpdevtips.com 
 **------------------------------------------------------------------------------
@@ -70,9 +70,13 @@ class DB
             $headers  = 'MIME-Version: 1.0' . "\r\n";
             $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
             $headers .= 'To: Admin <'.SEND_ERRORS_TO.'>' . "\r\n";
-            $headers .= 'From: Yoursite <system@your-site.com>' . "\r\n";
-            
-            mail( SEND_ERRORS_TO, 'Database Error', $message, $headers);   
+            $headers .= 'From: Yoursite <system@'.$_SERVER['SERVER_NAME'].'.com>' . "\r\n";
+
+            mail( SEND_ERRORS_TO, 'Database Error', $message, $headers );   
+        }
+        else
+        {
+            trigger_error( $message );
         }
 
         if( !defined( 'DISPLAY_DEBUG' ) || ( defined( 'DISPLAY_DEBUG' ) && DISPLAY_DEBUG ) )
@@ -84,7 +88,6 @@ class DB
     
     public function __construct()
     {
-        global $connection;
         mb_internal_encoding( 'UTF-8' );
         mb_regex_encoding( 'UTF-8' );
         $this->link = new mysqli( DB_HOST, DB_USER, DB_PASS, DB_NAME );
