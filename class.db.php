@@ -3,8 +3,8 @@
 ** File:        class.db.php
 ** Class:       Simply MySQLi
 ** Description: PHP MySQLi wrapper class to handle common database queries and operations 
-** Version:     2.1.3
-** Updated:     30-Jun-2014
+** Version:     2.1.4
+** Updated:     11-Sep-2014
 ** Author:      Bennett Stone
 ** Homepage:    www.phpdevtips.com 
 **------------------------------------------------------------------------------
@@ -44,7 +44,7 @@
 ********************************/
 class DB
 {
-    private $link;
+    private $link = null;
     public $filter;
     static $inst = null;
     public static $counter = 0;
@@ -90,18 +90,21 @@ class DB
     {
         mb_internal_encoding( 'UTF-8' );
         mb_regex_encoding( 'UTF-8' );
-        $this->link = new mysqli( DB_HOST, DB_USER, DB_PASS, DB_NAME );
-        if( $this->link->connect_errno )
-        {
-            $this->log_db_errors( "Connect failed", $this->link->connect_error );
-            exit;
+        mysqli_report( MYSQLI_REPORT_STRICT );
+        try {
+            $this->link = new mysqli( DB_HOST, DB_USER, DB_PASS, DB_NAME );
+            $this->link->set_charset( "utf8" );
+        } catch ( Exception $e ) {
+            die( 'Unable to connect to database' );
         }
-        $this->link->set_charset( "utf8" );
     }
 
     public function __destruct()
     {
-        $this->disconnect();
+        if( $this->link)
+        {
+            $this->disconnect();
+        }
     }
 
 
